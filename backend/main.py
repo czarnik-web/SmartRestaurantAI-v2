@@ -1,20 +1,14 @@
-from fastapi import FastAPI, HTTPException, Depends
-
+from fastapi import FastAPI
 
 import models
-from database import engine, SessionLocal
+from database import engine
 from routers import products
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
 app.include_router(products.router)
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @app.get("/")

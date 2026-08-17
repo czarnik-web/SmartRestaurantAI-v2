@@ -63,3 +63,30 @@ class PaymentResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class InventoryItemCreate(BaseModel):
+    item_name: str
+    item_type: str
+    current_quantity: float
+    minimum_quantity: float
+    unit: str
+
+
+class InventoryItemUpdate(BaseModel):
+    current_quantity: float | None = None
+    minimum_quantity: float | None = None
+    status: str | None = None
+
+
+class InventoryItemResponse(BaseModel):
+    id: int
+    item_name: str
+    item_type: str
+    current_quantity: float
+    minimum_quantity: float
+    unit: str
+    status: str
+
+    model_config = {
+        "from_attributes": True
+    }

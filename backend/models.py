@@ -30,3 +30,14 @@ class Payment(Base):
     amount = Column(Float, nullable=False)
     status = Column(String, nullable=False, default="Pending")
     payment_date = Column(DateTime, server_default=func.now())
+
+class InventoryItem(Base):
+    __tablename__ = "inventory_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    item_name = Column(String, nullable=False)
+    item_type = Column(String, nullable=False)
+    current_quantity = Column(Float, nullable=False, default=0.0)
+    minimum_quantity = Column(Float, nullable=False, default=0.0)
+    unit = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="Active")

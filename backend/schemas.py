@@ -90,3 +90,20 @@ class InventoryItemResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class NotificationCreate(BaseModel):
+    customer_id: int | None = None
+    type: str
+    message: str
+
+
+class NotificationResponse(BaseModel):
+    id: int
+    customer_id: int | None
+    type: str
+    message: str
+    status: str
+
+    model_config = {
+        "from_attributes": True
+    }

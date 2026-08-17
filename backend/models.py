@@ -41,3 +41,12 @@ class InventoryItem(Base):
     minimum_quantity = Column(Float, nullable=False, default=0.0)
     unit = Column(String, nullable=False)
     status = Column(String, nullable=False, default="Active")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    customer_id = Column(Integer, nullable=True)
+    type = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="Pending")

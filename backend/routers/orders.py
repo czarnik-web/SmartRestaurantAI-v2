@@ -34,7 +34,12 @@ def get_order(id: int, db=Depends(get_db)):
 
 @router.post("", response_model=schemas.OrderResponse)
 def create_order(order: schemas.OrderCreate, db=Depends(get_db)):
-    return orders_service.create_order(db, order)
+    new_order = orders_service.create_order(db, order)
+
+    if new_order is None:
+        raise HTTPException(status_code=404, detail="Produkt nebol nájdený")
+
+    return new_order
 
 @router.patch("/{id}", response_model=schemas.OrderResponse)
 def update_order(

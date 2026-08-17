@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, func
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey , func
 from database import Base
+from sqlalchemy.orm import relationship
 
 
 class Product(Base):
@@ -20,6 +21,24 @@ class Order(Base):
     order_status = Column(String, nullable=False, default="New")
     total_amount = Column(Float, nullable=False, default=0.0)
     payment_status = Column(String, nullable=False, default="Pending")
+    items = relationship(
+    "OrderItem",
+    back_populates="order",
+    cascade="all, delete-orphan"
+)
+
+class OrderItem(Base):
+    __tablename__ = "order_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    unit_price = Column(Float, nullable=False)
+    order = relationship(
+    "Order",
+    back_populates="items"
+)
 
 class Payment(Base):
     __tablename__ = "payments"

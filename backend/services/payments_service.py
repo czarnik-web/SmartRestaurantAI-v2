@@ -33,6 +33,15 @@ def update_payment(db, payment_id: int, payment_update):
     if payment_update.status is not None:
         payment.status = payment_update.status
 
+        order = (
+            db.query(models.Order)
+            .filter(models.Order.id == payment.order_id)
+            .first()
+        )
+
+        if order is not None:
+            order.payment_status = payment_update.status
+
     db.commit()
     db.refresh(payment)
 

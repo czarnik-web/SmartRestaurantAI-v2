@@ -18,16 +18,33 @@ class ProductResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+    
+
 class OrderCreate(BaseModel):
     customer_id: int | None = None
     order_number: str
     order_type: str
-    total_amount: float
+    items: list[OrderItemCreate]
 
 
 class OrderUpdate(BaseModel):
     order_status: str | None = None
     payment_status: str | None = None
+
+class OrderItemResponse(BaseModel):
+    id: int
+    order_id: int
+    product_id: int
+    quantity: int
+    unit_price: float
+
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class OrderResponse(BaseModel):
@@ -38,6 +55,7 @@ class OrderResponse(BaseModel):
     order_status: str
     total_amount: float
     payment_status: str
+    items: list[OrderItemResponse]
 
     model_config = {
         "from_attributes": True
@@ -107,3 +125,24 @@ class NotificationResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class DailyReportResponse(BaseModel):
+    order_count: int
+    total_revenue: float
+    low_stock_items: list[InventoryItemResponse]
+
+class TopProductResponse(BaseModel):
+    product_id: int
+    product_name: str
+    quantity_sold: int
+
+
+class SalesReportResponse(BaseModel):
+    total_revenue: float
+    completed_orders: int
+    total_items_sold: int
+    top_products: list[TopProductResponse]
+
+class RefundReportResponse(BaseModel):
+    refund_count: int
+    total_refunded: float

@@ -42,3 +42,24 @@ class OrderResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class PaymentCreate(BaseModel):
+    order_id: int
+    payment_method: str
+    amount: float
+
+
+class PaymentUpdate(BaseModel):
+    status: str | None = None
+
+
+class PaymentResponse(BaseModel):
+    id: int
+    order_id: int
+    payment_method: str
+    amount: float
+    status: str
+
+    model_config = {
+        "from_attributes": True
+    }

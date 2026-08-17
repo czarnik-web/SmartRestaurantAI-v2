@@ -20,3 +20,13 @@ class Order(Base):
     order_status = Column(String, nullable=False, default="New")
     total_amount = Column(Float, nullable=False, default=0.0)
     payment_status = Column(String, nullable=False, default="Pending")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, nullable=False, unique=True)
+    payment_method = Column(String, nullable=False)
+    amount = Column(Float, nullable=False)
+    status = Column(String, nullable=False, default="Pending")
+    payment_date = Column(DateTime, server_default=func.now())

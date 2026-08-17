@@ -18,3 +18,27 @@ class ProductResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+class OrderCreate(BaseModel):
+    customer_id: int | None = None
+    order_number: str
+    order_type: str
+    total_amount: float
+
+
+class OrderUpdate(BaseModel):
+    order_status: str | None = None
+    payment_status: str | None = None
+
+
+class OrderResponse(BaseModel):
+    id: int
+    customer_id: int | None
+    order_number: str
+    order_type: str
+    order_status: str
+    total_amount: float
+    payment_status: str
+
+    model_config = {
+        "from_attributes": True
+    }

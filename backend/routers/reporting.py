@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 import schemas
 
-from database import SessionLocal
+from database import get_db
 from services import reporting_service
 
 
@@ -10,14 +10,6 @@ router = APIRouter(
     prefix="/reports",
     tags=["Reporting"]
 )
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/daily", response_model=schemas.DailyReportResponse)
 def get_daily_report(db=Depends(get_db)):

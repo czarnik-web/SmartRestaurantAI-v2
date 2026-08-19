@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 import schemas
 
-from database import SessionLocal
+from database import get_db
 from services import inventory_service
 
 
@@ -10,15 +10,6 @@ router = APIRouter(
     prefix="/inventory",
     tags=["Inventory"]
 )
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 @router.get("", response_model=list[schemas.InventoryItemResponse])
 def get_inventory_items(db=Depends(get_db)):
     return inventory_service.get_all_inventory_items(db)

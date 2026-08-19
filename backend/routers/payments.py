@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 import schemas
 
-from database import SessionLocal
+from database import get_db
 from services import payments_service
 
 
@@ -10,14 +10,6 @@ router = APIRouter(
     prefix="/payments",
     tags=["Payments"]
 )
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("", response_model=list[schemas.PaymentResponse])
 def get_payments(db=Depends(get_db)):

@@ -4,7 +4,7 @@ import schemas
 
 from database import SessionLocal
 from services import kitchen_service
-
+from typing import Literal
 
 router = APIRouter(
     prefix="/kitchen/orders",
@@ -35,7 +35,7 @@ def get_kitchen_order(id: int, db=Depends(get_db)):
 @router.patch("/{id}/status", response_model=schemas.OrderResponse)
 def update_kitchen_order_status(
     id: int,
-    status: str,
+    status: Literal["New", "Preparing", "Ready"],
     db=Depends(get_db)
 ):
     order = kitchen_service.update_kitchen_order_status(db, id, status)

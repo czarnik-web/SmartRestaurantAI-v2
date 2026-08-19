@@ -11,6 +11,13 @@ def get_order_by_id(db, order_id: int):
         .first()
     )
 
+def get_order_by_number(db, order_number: str):
+    return (
+        db.query(models.Order)
+        .filter(models.Order.order_number == order_number)
+        .first()
+    )
+
 def create_order(db, order):
     new_order = models.Order(
         customer_id=order.customer_id,
@@ -62,8 +69,6 @@ def update_order(db, order_id: int, order_update):
     if order_update.order_status is not None:
         order.order_status = order_update.order_status
 
-    if order_update.payment_status is not None:
-        order.payment_status = order_update.payment_status
 
     db.commit()
     db.refresh(order)

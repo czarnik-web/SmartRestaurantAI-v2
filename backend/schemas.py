@@ -1,14 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class ProductCreate(BaseModel):
     name: str
-    price: float
+    price: float = Field(gt=0)
 
 
 class ProductUpdate(BaseModel):
     name: str | None = None
-    price: float | None = None
+    price: float | None = Field(default=None, gt=0)
 
 class ProductResponse(BaseModel):
     id: int
@@ -21,7 +22,7 @@ class ProductResponse(BaseModel):
 
 class OrderItemCreate(BaseModel):
     product_id: int
-    quantity: int
+    quantity: int = Field(gt=0)
     
 
 class OrderCreate(BaseModel):
@@ -32,8 +33,7 @@ class OrderCreate(BaseModel):
 
 
 class OrderUpdate(BaseModel):
-    order_status: str | None = None
-    payment_status: str | None = None
+    order_status: Literal["New", "Preparing", "Ready"] | None = None
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -64,11 +64,10 @@ class OrderResponse(BaseModel):
 class PaymentCreate(BaseModel):
     order_id: int
     payment_method: str
-    amount: float
 
 
 class PaymentUpdate(BaseModel):
-    status: str | None = None
+    status: Literal["Pending", "Paid", "Failed", "Refunded", "Cancelled"] | None = None
 
 
 class PaymentResponse(BaseModel):
@@ -85,14 +84,13 @@ class PaymentResponse(BaseModel):
 class InventoryItemCreate(BaseModel):
     item_name: str
     item_type: str
-    current_quantity: float
-    minimum_quantity: float
+    current_quantity: float = Field(ge=0)
+    minimum_quantity: float = Field(ge=0)
     unit: str
 
-
 class InventoryItemUpdate(BaseModel):
-    current_quantity: float | None = None
-    minimum_quantity: float | None = None
+    current_quantity: float | None = Field(default=None, ge=0)
+    minimum_quantity: float | None = Field(default=None, ge=0)
     status: str | None = None
 
 

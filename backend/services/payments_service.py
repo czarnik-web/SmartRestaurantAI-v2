@@ -11,11 +11,27 @@ def get_payment_by_id(db, payment_id: int):
         .first()
     )
 
+def get_payment_by_order_id(db, order_id: int):
+    return (
+        db.query(models.Payment)
+        .filter(models.Payment.order_id == order_id)
+        .first()
+    )
+
 def create_payment(db, payment):
+    order = (
+        db.query(models.Order)
+        .filter(models.Order.id == payment.order_id)
+        .first()
+    )
+
+    if order is None:
+        return None
+
     new_payment = models.Payment(
         order_id=payment.order_id,
         payment_method=payment.payment_method,
-        amount=payment.amount
+        amount=order.total_amount
     )
 
     db.add(new_payment)

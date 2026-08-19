@@ -34,7 +34,26 @@ def get_payment(id: int, db=Depends(get_db)):
 
 @router.post("", response_model=schemas.PaymentResponse)
 def create_payment(payment: schemas.PaymentCreate, db=Depends(get_db)):
-    return payments_service.create_payment(db, payment)
+    existing_payment = payments_service.get_payment_by_order_id(
+        db,
+        payment.order_id
+    )
+
+    if existing_payment is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Platba pre túto objednávku už existuje"
+        )
+
+    new_payment = payments_service.create_payment(db, payment)
+
+    if new_payment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Objednávka nebola nájdená"
+        )
+
+    return new_payment
 
 @router.patch("/{id}", response_model=schemas.PaymentResponse)
 def update_payment(

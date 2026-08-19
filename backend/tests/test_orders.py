@@ -70,3 +70,72 @@ def test_order_quantity_must_be_positive():
     )
 
     assert response.status_code == 422
+
+def test_order_with_nonexistent_product_returns_404():
+    response = client.post(
+        "/orders",
+        json={
+            "customer_id": 1,
+            "order_number": "TEST-NOT-FOUND",
+            "order_type": "takeaway",
+            "items": [
+                {
+                    "product_id": 999,
+                    "quantity": 1
+                }
+            ]
+        }
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Produkt nebol nájdený"
+    }
+
+def test_duplicate_order_number_returns_409():
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "Duplicate Order Test Product",
+            "price": 10.0
+        }
+    )
+
+    product_id = product_response.json()["id"]
+
+    order_data = {
+        "customer_id": 1,
+        "order_number": "DUPLICATE-001",
+        "order_type": "takeaway",
+        "items": [
+            {
+                "product_id": product_id,
+                "quantity": 1
+            }
+        ]
+    }
+
+    first_response = client.post(
+        "/orders",
+        json=order_data
+    )
+
+    assert first_response.status_code == 200
+
+    second_response = client.post(
+        "/orders",
+        json=order_data
+    )
+
+    assert second_response.status_code == 409
+    assert second_response.json() == {
+        "detail": "Objednávka s týmto číslom už existuje"
+    }
+
+def test_get_nonexistent_order_returns_404():
+    response = client.get("/orders/999")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Objednávka nebola nájdená"
+    }

@@ -155,3 +155,17 @@ def test_payment_status_syncs_to_order():
 
     assert order_response.status_code == 200
     assert order_response.json()["payment_status"] == "Paid"
+
+def test_payment_for_nonexistent_order_returns_404():
+    response = client.post(
+        "/payments",
+        json={
+            "order_id": 999,
+            "payment_method": "card"
+        }
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Objednávka nebola nájdená"
+    }

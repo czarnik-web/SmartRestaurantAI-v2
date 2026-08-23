@@ -131,3 +131,66 @@ def test_restaurant_assistant_gets_restaurant_status(db_session):
     assert "refunds" in status
     assert status["daily"]["order_count"] == 1
     assert status["daily"]["total_revenue"] == 30.0
+
+def test_process_message_routes_to_order_overview(
+    db_session,
+    monkeypatch
+):
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "AI Routing Pizza",
+            "price": 10.0
+        }
+    )
+
+    product_id = product_response.json()["id"]
+
+    order_response = client.post(
+        "/orders",
+        json={
+            "customer_id": 1,
+            "order_number": "AI-ROUTE-001",
+            "order_type": "takeaway",
+            "items": [
+                {
+                    "product_id": product_id,
+                    "quantity": 2
+                }
+            ]
+        }
+    )
+
+    order_id = order_response.json()["id"]
+
+    monkeypatch.setattr(
+        restaurant_assistant,
+        "detect_action",
+        lambda message: {
+            "action": "order_overview",
+            "order_id": order_id
+        }
+    )
+
+    response = restaurant_assistant.process_message(
+        db_session,
+        "Ukáž mi túto objednávku"
+    )
+
+    assert "AI-ROUTE-001" in response
+    assert "20.0 €" in response
+
+def test_detect_action_handles_invalid_json(monkeypatch):
+    monkeypatch.setattr(
+        restaurant_assistant,
+        "ask_ollama",
+        lambda prompt: "toto nie je JSON"
+    )
+
+    decision = restaurant_assistant.detect_action(
+        "Nejaká požiadavka"
+    )
+
+    assert decision == {
+        "action": "unknown"
+    }

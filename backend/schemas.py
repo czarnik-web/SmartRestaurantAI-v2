@@ -144,3 +144,10 @@ class SalesReportResponse(BaseModel):
 class RefundReportResponse(BaseModel):
     refund_count: int
     total_refunded: float
+
+class AIChatRequest(BaseModel):
+    message: str
+
+
+class AIChatResponse(BaseModel):
+    response: str

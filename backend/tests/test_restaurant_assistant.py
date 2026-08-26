@@ -1,6 +1,7 @@
 from AI import restaurant_assistant
 from fastapi.testclient import TestClient
 from main import app
+from AI.restaurant_tools import build_tool_registry
 
 from services import (
     products_service,
@@ -132,14 +133,11 @@ def test_restaurant_assistant_gets_restaurant_status(db_session):
     assert status["daily"]["order_count"] == 1
     assert status["daily"]["total_revenue"] == 30.0
 
-def test_process_message_routes_to_order_overview(
-    db_session,
-    monkeypatch
-):
+def test_order_overview_tool(db_session):
     product_response = client.post(
         "/products",
         json={
-            "name": "AI Routing Pizza",
+            "name": "AI Tool Pizza",
             "price": 10.0
         }
     )
@@ -150,7 +148,7 @@ def test_process_message_routes_to_order_overview(
         "/orders",
         json={
             "customer_id": 1,
-            "order_number": "AI-ROUTE-001",
+            "order_number": "AI-TOOL-001",
             "order_type": "takeaway",
             "items": [
                 {
@@ -163,42 +161,19 @@ def test_process_message_routes_to_order_overview(
 
     order_id = order_response.json()["id"]
 
-    monkeypatch.setattr(
-        restaurant_assistant,
-        "detect_action",
-        lambda message: {
-            "action": "order_overview",
-            "order_id": order_id
-        }
+    tools = build_tool_registry(db_session)
+
+    result = tools["get_order_overview"](
+        order_id=order_id
     )
 
-    response = restaurant_assistant.process_message(
-        db_session,
-        "Ukáž mi túto objednávku"
-    )
+    assert result["order_id"] == order_id
+    assert result["order_number"] == "AI-TOOL-001"
+    assert result["total_amount"] == 20.0
+    assert result["payment_status"] == "No payment"
 
-    assert "AI-ROUTE-001" in response
-    assert "20.0 €" in response
 
-def test_detect_action_handles_invalid_json(monkeypatch):
-    monkeypatch.setattr(
-        restaurant_assistant,
-        "ask_ollama",
-        lambda prompt: "toto nie je JSON"
-    )
-
-    decision = restaurant_assistant.detect_action(
-        "Nejaká požiadavka"
-    )
-
-    assert decision == {
-        "action": "unknown"
-    }
-
-def test_process_message_routes_to_low_stock(
-    db_session,
-    monkeypatch
-):
+def test_low_stock_tool(db_session):
     client.post(
         "/inventory",
         json={
@@ -210,29 +185,20 @@ def test_process_message_routes_to_low_stock(
         }
     )
 
-    monkeypatch.setattr(
-        restaurant_assistant,
-        "detect_action",
-        lambda message: {
-            "action": "low_stock"
-        }
-    )
+    tools = build_tool_registry(db_session)
 
-    response = restaurant_assistant.process_message(
-        db_session,
-        "Čo nám dochádza na sklade?"
-    )
+    result = tools["get_low_stock_items"]()
 
-    assert "Test Mozzarella" in response
+    assert len(result["items"]) == 1
+    assert result["items"][0]["name"] == "Test Mozzarella"
+    assert result["items"][0]["current_quantity"] == 2
+    assert result["items"][0]["minimum_quantity"] == 5
 
-def test_process_message_routes_to_pending_payments(
-    db_session,
-    monkeypatch
-):
+def test_pending_payments_tool(db_session):
     product_response = client.post(
         "/products",
         json={
-            "name": "Pending Payment Pizza",
+            "name": "Pending Tool Pizza",
             "price": 9.0
         }
     )
@@ -243,7 +209,7 @@ def test_process_message_routes_to_pending_payments(
         "/orders",
         json={
             "customer_id": 1,
-            "order_number": "PENDING-001",
+            "order_number": "PENDING-TOOL-001",
             "order_type": "takeaway",
             "items": [
                 {
@@ -254,17 +220,10 @@ def test_process_message_routes_to_pending_payments(
         }
     )
 
-    monkeypatch.setattr(
-        restaurant_assistant,
-        "detect_action",
-        lambda message: {
-            "action": "pending_payments"
-        }
-    )
+    tools = build_tool_registry(db_session)
 
-    response = restaurant_assistant.process_message(
-        db_session,
-        "Ktoré objednávky čakajú na platbu?"
-    )
+    result = tools["get_pending_payment_orders"]()
 
-    assert "PENDING-001" in response
+    assert len(result["orders"]) == 1
+    assert result["orders"][0]["order_number"] == "PENDING-TOOL-001"
+    assert result["orders"][0]["total_amount"] == 9.0

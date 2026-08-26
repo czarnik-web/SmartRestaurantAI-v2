@@ -227,3 +227,47 @@ def test_pending_payments_tool(db_session):
     assert len(result["orders"]) == 1
     assert result["orders"][0]["order_number"] == "PENDING-TOOL-001"
     assert result["orders"][0]["total_amount"] == 9.0
+
+def test_kitchen_orders_tool(db_session):
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "Kitchen Tool Pizza",
+            "price": 12.0
+        }
+    )
+
+    product_id = product_response.json()["id"]
+
+    order_response = client.post(
+        "/orders",
+        json={
+            "customer_id": 1,
+            "order_number": "KITCHEN-TOOL-001",
+            "order_type": "takeaway",
+            "items": [
+                {
+                    "product_id": product_id,
+                    "quantity": 1
+                }
+            ]
+        }
+    )
+
+    order_id = order_response.json()["id"]
+
+    client.patch(
+        f"/kitchen/orders/{order_id}/status",
+        params={
+            "status": "Preparing"
+        }
+    )
+
+    tools = build_tool_registry(db_session)
+
+    result = tools["get_kitchen_orders"]()
+
+    assert len(result["orders"]) == 1
+    assert result["orders"][0]["order_number"] == "KITCHEN-TOOL-001"
+    assert result["orders"][0]["order_status"] == "Preparing"
+    assert result["orders"][0]["total_amount"] == 12.0

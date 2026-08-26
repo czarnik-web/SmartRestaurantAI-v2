@@ -3,6 +3,7 @@ from services import (
     orders_service,
     payments_service,
     reporting_service,
+    kitchen_service,
 )
 
 
@@ -90,10 +91,33 @@ def build_tool_registry(db):
             ]
         }
 
+    def get_kitchen_orders():
+        """Získa objednávky, ktoré sú aktuálne v kuchyni alebo čakajú na prípravu."""
+        orders = kitchen_service.get_all_kitchen_orders(db)
+
+        active_orders = [
+            order
+            for order in orders
+            if order.order_status in ["New", "Preparing"]
+        ]
+
+        return {
+            "orders": [
+                {
+                    "id": order.id,
+                    "order_number": order.order_number,
+                    "order_status": order.order_status,
+                    "total_amount": order.total_amount,
+                }
+                for order in active_orders
+            ]
+        }
+
     return {
         "get_restaurant_status": get_restaurant_status,
         "get_product_count": get_product_count,
         "get_order_overview": get_order_overview,
         "get_low_stock_items": get_low_stock_items,
         "get_pending_payment_orders": get_pending_payment_orders,
+        "get_kitchen_orders": get_kitchen_orders,
     }

@@ -142,6 +142,21 @@ def build_tool_registry(db):
             "top_products": report["top_products"],
         }
 
+    def get_products():
+        """Získa zoznam produktov alebo jedál vrátane ich ID, názvu a ceny."""
+        products = products_service.get_all_products(db)
+
+        return {
+            "products": [
+                {
+                    "id": product.id,
+                    "name": product.name,
+                    "price": product.price,
+                }
+                for product in products
+            ]
+        }
+
     return {
         "get_restaurant_status": get_restaurant_status,
         "get_product_count": get_product_count,
@@ -151,4 +166,6 @@ def build_tool_registry(db):
         "get_kitchen_orders": get_kitchen_orders,
         "get_notifications": get_notifications,
         "get_sales_report": get_sales_report,
+        "get_products": get_products,
     }
+

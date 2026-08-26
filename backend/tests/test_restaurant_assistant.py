@@ -350,3 +350,20 @@ def test_sales_report_tool(db_session):
     assert result["completed_orders"] == 1
     assert result["total_items_sold"] == 2
     assert result["top_products"][0]["product_name"] == "Sales Tool Pizza"
+
+def test_products_tool(db_session):
+    client.post(
+        "/products",
+        json={
+            "name": "Products Tool Pizza",
+            "price": 8.5
+        }
+    )
+
+    tools = build_tool_registry(db_session)
+
+    result = tools["get_products"]()
+
+    assert len(result["products"]) == 1
+    assert result["products"][0]["name"] == "Products Tool Pizza"
+    assert result["products"][0]["price"] == 8.5

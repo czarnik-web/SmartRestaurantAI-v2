@@ -289,3 +289,64 @@ def test_notifications_tool(db_session):
     assert len(result["notifications"]) == 1
     assert result["notifications"][0]["message"] == "Test notifikácia"
     assert result["notifications"][0]["status"] == "Pending"
+
+def test_sales_report_tool(db_session):
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "Sales Tool Pizza",
+            "price": 10.0
+        }
+    )
+
+    product_id = product_response.json()["id"]
+
+    order_response = client.post(
+        "/orders",
+        json={
+            "customer_id": 1,
+            "order_number": "SALES-TOOL-001",
+            "order_type": "takeaway",
+            "items": [
+                {
+                    "product_id": product_id,
+                    "quantity": 2
+                }
+            ]
+        }
+    )
+
+    order_id = order_response.json()["id"]
+
+    payment_response = client.post(
+        "/payments",
+        json={
+            "order_id": order_id,
+            "payment_method": "card"
+        }
+    )
+
+    payment_id = payment_response.json()["id"]
+
+    client.patch(
+        f"/payments/{payment_id}",
+        json={
+            "status": "Paid"
+        }
+    )
+
+    client.patch(
+        f"/kitchen/orders/{order_id}/status",
+        params={
+            "status": "Ready"
+        }
+    )
+
+    tools = build_tool_registry(db_session)
+
+    result = tools["get_sales_report"]()
+
+    assert result["total_revenue"] == 20.0
+    assert result["completed_orders"] == 1
+    assert result["total_items_sold"] == 2
+    assert result["top_products"][0]["product_name"] == "Sales Tool Pizza"

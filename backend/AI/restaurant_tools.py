@@ -131,6 +131,17 @@ def build_tool_registry(db):
         ]
     }
 
+    def get_sales_report():
+        """Získa prehľad tržieb, dokončených objednávok, predaných položiek a top produktov."""
+        report = reporting_service.get_sales_report(db)
+
+        return {
+            "total_revenue": report["total_revenue"],
+            "completed_orders": report["completed_orders"],
+            "total_items_sold": report["total_items_sold"],
+            "top_products": report["top_products"],
+        }
+
     return {
         "get_restaurant_status": get_restaurant_status,
         "get_product_count": get_product_count,
@@ -139,4 +150,5 @@ def build_tool_registry(db):
         "get_pending_payment_orders": get_pending_payment_orders,
         "get_kitchen_orders": get_kitchen_orders,
         "get_notifications": get_notifications,
+        "get_sales_report": get_sales_report,
     }

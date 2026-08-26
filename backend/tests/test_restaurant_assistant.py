@@ -194,3 +194,77 @@ def test_detect_action_handles_invalid_json(monkeypatch):
     assert decision == {
         "action": "unknown"
     }
+
+def test_process_message_routes_to_low_stock(
+    db_session,
+    monkeypatch
+):
+    client.post(
+        "/inventory",
+        json={
+            "item_name": "Test Mozzarella",
+            "item_type": "ingredient",
+            "current_quantity": 2,
+            "minimum_quantity": 5,
+            "unit": "kg"
+        }
+    )
+
+    monkeypatch.setattr(
+        restaurant_assistant,
+        "detect_action",
+        lambda message: {
+            "action": "low_stock"
+        }
+    )
+
+    response = restaurant_assistant.process_message(
+        db_session,
+        "Čo nám dochádza na sklade?"
+    )
+
+    assert "Test Mozzarella" in response
+
+def test_process_message_routes_to_pending_payments(
+    db_session,
+    monkeypatch
+):
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "Pending Payment Pizza",
+            "price": 9.0
+        }
+    )
+
+    product_id = product_response.json()["id"]
+
+    client.post(
+        "/orders",
+        json={
+            "customer_id": 1,
+            "order_number": "PENDING-001",
+            "order_type": "takeaway",
+            "items": [
+                {
+                    "product_id": product_id,
+                    "quantity": 1
+                }
+            ]
+        }
+    )
+
+    monkeypatch.setattr(
+        restaurant_assistant,
+        "detect_action",
+        lambda message: {
+            "action": "pending_payments"
+        }
+    )
+
+    response = restaurant_assistant.process_message(
+        db_session,
+        "Ktoré objednávky čakajú na platbu?"
+    )
+
+    assert "PENDING-001" in response

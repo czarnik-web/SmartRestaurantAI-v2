@@ -90,7 +90,37 @@ def process_message(db, message: str):
             f"platba {payment_status}."
         )
 
+    if action == "low_stock":
+        items = get_low_stock_items(db)
+
+        if not items:
+            return "Momentálne nemáme žiadne skladové položky pod minimálnym množstvom."
+
+        item_names = ", ".join(
+            item.item_name
+            for item in items
+        )
+
+        return f"Nízky stav skladu majú položky: {item_names}."
+
+    if action == "pending_payments":
+        orders = get_pending_payment_orders(db)
+
+        if not orders:
+            return "Momentálne nemáme žiadne objednávky čakajúce na platbu."
+
+        order_numbers = ", ".join(
+            order.order_number
+            for order in orders
+        )
+
+        return (
+            f"Na platbu čakajú objednávky: "
+            f"{order_numbers}."
+        )
+
     return "Tejto požiadavke zatiaľ nerozumiem."
+
 
 def detect_intent(message: str):
     prompt = f"""
@@ -122,6 +152,8 @@ Vyber jednu povolenú akciu:
 - product_count
 - order_overview
 - unknown
+- low_stock
+- pending_payments
 
 Akcia order_overview potrebuje order_id.
 
@@ -137,6 +169,10 @@ Príklady:
 {{"action": "order_overview", "order_id": 2}}
 
 {{"action": "unknown"}}
+
+{{"action": "low_stock"}}
+
+{{"action": "pending_payments"}}
 
 Správa používateľa:
 {message}
@@ -154,50 +190,16 @@ Správa používateľa:
 
     return decision
 
-def test_process_message_routes_to_order_overview(
-    db_session,
-    monkeypatch
-):
-    product_response = client.post(
-        "/products",
-        json={
-            "name": "AI Routing Pizza",
-            "price": 10.0
-        }
-    )
+def get_low_stock_items(db):
+    daily_report = reporting_service.get_daily_report(db)
 
-    product_id = product_response.json()["id"]
+    return daily_report["low_stock_items"]
 
-    order_response = client.post(
-        "/orders",
-        json={
-            "customer_id": 1,
-            "order_number": "AI-ROUTE-001",
-            "order_type": "takeaway",
-            "items": [
-                {
-                    "product_id": product_id,
-                    "quantity": 2
-                }
-            ]
-        }
-    )
+def get_pending_payment_orders(db):
+    orders = orders_service.get_all_orders(db)
 
-    order_id = order_response.json()["id"]
-
-    monkeypatch.setattr(
-        restaurant_assistant,
-        "detect_action",
-        lambda message: {
-            "action": "order_overview",
-            "order_id": order_id
-        }
-    )
-
-    response = restaurant_assistant.process_message(
-        db_session,
-        "Ukáž mi túto objednávku"
-    )
-
-    assert "AI-ROUTE-001" in response
-    assert "20.0 €" in response
+    return [
+        order
+        for order in orders
+        if order.payment_status == "Pending"
+    ]

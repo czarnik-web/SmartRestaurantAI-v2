@@ -4,6 +4,7 @@ from services import (
     payments_service,
     reporting_service,
     kitchen_service,
+    notifications_service,
 )
 
 
@@ -113,6 +114,23 @@ def build_tool_registry(db):
             ]
         }
 
+    def get_notifications():
+        """Získa notifikácie evidované v systéme, najmä čakajúce na spracovanie."""
+        notifications = notifications_service.get_all_notifications(db)
+
+        return {
+            "notifications": [
+            {
+                "id": notification.id,
+                "customer_id": notification.customer_id,
+                "type": notification.type,
+                "message": notification.message,
+                "status": notification.status,
+            }
+            for notification in notifications
+        ]
+    }
+
     return {
         "get_restaurant_status": get_restaurant_status,
         "get_product_count": get_product_count,
@@ -120,4 +138,5 @@ def build_tool_registry(db):
         "get_low_stock_items": get_low_stock_items,
         "get_pending_payment_orders": get_pending_payment_orders,
         "get_kitchen_orders": get_kitchen_orders,
+        "get_notifications": get_notifications,
     }

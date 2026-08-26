@@ -271,3 +271,21 @@ def test_kitchen_orders_tool(db_session):
     assert result["orders"][0]["order_number"] == "KITCHEN-TOOL-001"
     assert result["orders"][0]["order_status"] == "Preparing"
     assert result["orders"][0]["total_amount"] == 12.0
+
+def test_notifications_tool(db_session):
+    client.post(
+        "/notifications",
+        json={
+            "customer_id": 1,
+            "type": "order_status",
+            "message": "Test notifikácia"
+        }
+    )
+
+    tools = build_tool_registry(db_session)
+
+    result = tools["get_notifications"]()
+
+    assert len(result["notifications"]) == 1
+    assert result["notifications"][0]["message"] == "Test notifikácia"
+    assert result["notifications"][0]["status"] == "Pending"

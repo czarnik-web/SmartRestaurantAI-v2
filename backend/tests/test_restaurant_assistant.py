@@ -367,3 +367,25 @@ def test_products_tool(db_session):
     assert len(result["products"]) == 1
     assert result["products"][0]["name"] == "Products Tool Pizza"
     assert result["products"][0]["price"] == 8.5
+
+def test_inventory_tool(db_session):
+    client.post(
+        "/inventory",
+        json={
+            "item_name": "Inventory Tool Mozzarella",
+            "item_type": "ingredient",
+            "current_quantity": 3,
+            "minimum_quantity": 4,
+            "unit": "kg"
+        }
+    )
+
+    tools = build_tool_registry(db_session)
+
+    result = tools["get_inventory"]()
+
+    assert len(result["items"]) == 1
+    assert result["items"][0]["name"] == "Inventory Tool Mozzarella"
+    assert result["items"][0]["current_quantity"] == 3
+    assert result["items"][0]["minimum_quantity"] == 4
+    assert result["items"][0]["unit"] == "kg"

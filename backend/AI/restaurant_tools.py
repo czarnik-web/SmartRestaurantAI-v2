@@ -5,6 +5,7 @@ from services import (
     reporting_service,
     kitchen_service,
     notifications_service,
+    inventory_service,
 )
 
 
@@ -157,6 +158,25 @@ def build_tool_registry(db):
             ]
         }
 
+    def get_inventory():
+        """Získa aktuálny obsah skladu vrátane množstva, minima, jednotky a stavu."""
+        items = inventory_service.get_all_inventory_items(db)
+
+        return {
+            "items": [
+                {
+                    "id": item.id,
+                    "name": item.item_name,
+                    "type": item.item_type,
+                    "current_quantity": item.current_quantity,
+                    "minimum_quantity": item.minimum_quantity,
+                    "unit": item.unit,
+                    "status": item.status,
+                }
+                for item in items
+            ]
+        }
+
     return {
         "get_restaurant_status": get_restaurant_status,
         "get_product_count": get_product_count,
@@ -167,5 +187,6 @@ def build_tool_registry(db):
         "get_notifications": get_notifications,
         "get_sales_report": get_sales_report,
         "get_products": get_products,
+        "get_inventory": get_inventory,
     }
 
